@@ -1,0 +1,2 @@
+-run mongod
+-run nodemon start

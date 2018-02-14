@@ -1,0 +1,5 @@
+{"userId": "abc123", "transactionAmount": 10, "transactionType": "send"}
+{"userId": "abc456", "transactionAmount": 150, "transactionType": "send"}
+{"userId": "abc789", "transactionAmount": 1, "transactionType": "claim"}
+{"userId": "abc456", "transactionAmount": 150, "transactionType": "claim"}
+{"userId": "abc789", "transactionAmount": 1, "transactionType": "claim"}

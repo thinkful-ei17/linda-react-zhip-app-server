@@ -17,14 +17,16 @@
     "express": "^4.15.4",
     "knex": "^0.13.0",
     "mongoose": "^4.11.12",
-    "morgan": "^1.8.2",
+    "morgan": "^1.9.0",
     "pg": "^7.3.0"
   },
   "devDependencies": {
     "chai": "^4.1.2",
     "chai-http": "^3.0.0",
+    "dotenv": "^4.0.0",
     "mocha": "^3.5.3",
-    "nodemon": "^1.12.1",
-    "nyc": "^11.2.1"
+    "nodemon": "^1.14.11",
+    "nyc": "^11.2.1",
+    "body-parser": "^1.18.2"
   }
 }

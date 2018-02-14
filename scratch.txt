@@ -1,2 +1,5 @@
 -run mongod
 -run nodemon start
+use in git bash terminal
+
+mongoimport --db zhip --collection transactions --drop --file /c/Users/safetydance/thinkful-projects/zhip-application/server/items/primer-transaction.json

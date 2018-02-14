@@ -13,14 +13,6 @@ const app = express();
 
 app.use(jsonParser);
 
-//sender
-//POST - create new send transaction
-//PUT - update user balance
-
-//receiver
-//POST - create new claim transaction
-//PUT - update user balance
-
 app.use(
     morgan(process.env.NODE_ENV === 'production' ? 'common' : 'dev', {
         skip: (req, res) => process.env.NODE_ENV === 'test'
@@ -64,112 +56,157 @@ app.get('/transactions', (req, res) => {
         }); //error handler
 });
 
-
-//sending user inputs userId and transactionAmount => capture via req.body; capture transaction type via param id? or default to send?
-//{"transactionType":"send","transactionAmount":20,"userId":"5a844483734d1d1523dba1d6"}
-app.post('/send/transaction', jsonParser, (req, res) => {
+//new user provides id and starting accountblance of 0
+app.post('/user/new', (req, res) => {
     /***** Never trust users - validate input *****/
-    const requiredFields = ['userId', 'transactionAmount', 'transactionType'];
-    
-    const missingFields = requiredFields.filter(field => !(field in req.body)); 
- 
   
-    const { userId, transactionAmount, transactionType  } = req.body;
-    
-    const newTransaction = {userId, transactionAmount, transactionType };
-  
-    Transaction.create(newTransaction)
-      .then(sendAmount => {
-        if (sendAmount) {
-          res.json(sendAmount);
+    User.create({accountBalance: 1000})
+      .then(user => {
+        if (user) {
+          res.json(user);
         }
       })
       .catch(err => console.error(`Error: ${err.message}`));
   });
 
-  //{"transactionType":"send","transactionAmount":20,"userId":"5a844483734d1d1523dba1d6"}
-  app.put('/send/transaction', (req, res) => {
-    const id = req.body.userId;
+  //5a844476734d1d1523dba1c5
+  //5a844483734d1d1523dba1d6
+//sending user inputs userIdInitiator and transactionAmount => capture via req.body
+//{"transactionAmount":10,"userIdInitiator":"5a844483734d1d1523dba1d6"}
+app.post('/transaction/send', jsonParser, (req, res) => {
+    /***** Never trust users - validate input *****/
+    const requiredFields = ['transactionAmount', 'userIdInitiator'];
+    
+    const missingFields = requiredFields.filter(field => !(field in req.body)); 
+ 
+  
+    const { transactionAmount, userIdInitiator  } = req.body;
+    
+    const newTransaction = {userIdInitiator, transactionAmount };
+    User.findById(userIdInitiator)
+        .then(account => {
+            if((account.accountBalance > 0) && (account.accountBalance >= transactionAmount)) { //checks that user has enough in account balance to perform transaction
+                Transaction.create(newTransaction)
+                    .then(sendAmount => {
+                        if (sendAmount) {
+                        res.json(sendAmount);
+                        }
+                    })
+            }
+        else {
+        res.status(404).end();
+        }
+    })
+    .catch(err => {
+        res.status(500).send({message: 'Internal Server Error'});
+    });
+});
+
+  //{"transactionAmount":10,"userIdInitiator":"5a844483734d1d1523dba1d6"}
+  app.put('/account/send', jsonParser, (req, res) => {
+    const id = req.body.userIdInitiator;
     const amount = req.body.transactionAmount;
-    const type = req.body.transactionType;
+
     console.log('what is id', id);
     console.log('what is amount', amount);
-    console.log('what is type', type);
+
      /***** Never trust users - validate input *****/
-    const requiredFields = ['transactionType'];
+    const requiredFields = ['userIdInitiator', 'transactionAmount'];
   
     const missingFields = requiredFields.filter(field => !(field in req.body));
 
     console.log('is there a missingFields', missingFields);
   
    User.findById(id)
-    .then(transaction => {
-        console.log('what is transaction', transaction);
-        let newBalance = parseInt(transaction.accountBalance) - parseInt(amount);
+    .then(account => {
+        console.log('what is account', account);
+        if (parseInt(account.accountBalance) >= parseInt(amount)) { 
+        let newBalance = parseInt(account.accountBalance) - parseInt(amount);
           User.findByIdAndUpdate(id, {accountBalance: newBalance})
           .then(() => res.status(204).end())
           .catch(err => console.error(`Error: ${err.message}`));
+        }
+        else {
+            res.status(404).end(); // 404 handler
+        }
     })
     .catch(err => {
       res.status(500).send({message: 'Internal Server Error'});
     });  // error handler
   });
 
-//   //{"transactionType":"send","transactionAmount":20,"userId":"5a844483734d1d1523dba1d6"}
-// app.post('/receive/transaction/:transactionAmount/:originatingTransactionId', jsonParser, (req, res) => {
-//     const transId = req.params.originatingTransactionId;
-//     const amount = req.params.transactionAmount;
-//     const type = req.body.transactionType;
-//     const userId = req.body.userId;
-//     console.log('what is id', transId);
-//     console.log('what is amount', amount);
-//     console.log('what is type', type);
-//      /***** Never trust users - validate input *****/
-//     const requiredFields = ['userId', 'transactionType'];
-    
-//     const missingFields = requiredFields.filter(field => !(field in req.body)); 
- 
-  
-//     const { userId, transactionAmount, transactionType  } = req.body;
-    
-//     const newTransaction = {userId, transactionAmount, transactionType };
-  
-//     Transaction.create(newTransaction)
-//       .then(sendAmount => {
-//         if (sendAmount) {
-//           res.json(sendAmount);
-//         }
-//       })
-//       .catch(err => console.error(`Error: ${err.message}`));
-//   });
+//localhost:8080/receive/transaction/5a84a88d03eb191658d565cf
+//{"userIdClaimer": "5a844476734d1d1523dba1c5"}
+//issue with initial response sent is same old; however database collection doc is updated
+app.put('/transaction/receive/:transactionId', jsonParser ,(req, res) => {
+    const transId = req.params.transactionId;
+    const id = req.body.userIdClaimer;
 
-//   //{"transactionType":"send","transactionAmount":20,"userId":"5a844483734d1d1523dba1d6"}
-//   app.put('/receive/transaction', (req, res) => {
-//     const id = req.body.userId;
-//     const amount = req.body.transactionAmount;
-//     const type = req.body.transactionType;
-//     console.log('what is id', id);
-//     console.log('what is amount', amount);
-//     console.log('what is type', type);
-//      /***** Never trust users - validate input *****/
-//     const requiredFields = ['transactionType'];
+    const requiredFields = ['userIdClaimer'];
   
-//     const missingFields = requiredFields.filter(field => !(field in req.body));
+    const missingFields = requiredFields.filter(field => !(field in req.body));
 
-//     console.log('is there a missingFields', missingFields);
+    console.log('what is tranid here', transId);
+    console.log('what is user id', id);
+        Transaction.findById(transId)
+            .then(transaction => {
+                console.log('what is transaction', transaction);
+                console.log('what is isIOUClaimed', transaction.isIOUClaimed);
+                console.log('what is id here in findbyId!!!!!!', id);
+                console.log('what is userIdInitiator', transaction.userIdInitiator);
+                if (transaction && !(transaction.isIOUClaimed) && (transaction.userIdInitiator !== id)) {
+                    console.log('transaction exists! now what???');
+                Transaction.findByIdAndUpdate(transId, {userIdClaimer: id, isIOUClaimed: true}, {new: true})
+                    .then(completedTransaction => {
+                        console.log('what is completedTransaction');
+                    if (completedTransaction) {
+                        res.json(completedTransaction);
+                    }
+                    })
+                }
+                else {
+                    res.status(404).end(); // 404 handler
+                }
+        })
+        .catch(err => {
+            res.status(500).send({message: 'Internal Server Error'});
+        });
+}); 
+
+
+  //{"transactionType":"send","transactionAmount":20,"userId":"5a844483734d1d1523dba1d6"}
+app.put('/account/receive/:transactionId', (req, res) => {
+    const id = req.body.userIdClaimer;
+    //have to find const amount = req.body.transactionAmount;
+    const transId = req.params.transactionId;
+
+     /***** Never trust users - validate input *****/
+    const requiredFields = ['userIdClaimer'];
   
-//    User.findById(id)
-//     .then(transaction => {
-//         console.log('what is transaction', transaction);
-//         let newBalance = parseInt(transaction.accountBalance) + parseInt(amount);
-//           User.findByIdAndUpdate(id, {accountBalance: newBalance})
-//           .then(() => res.status(204).end())
-//           .catch(err => console.error(`Error: ${err.message}`));
-//     })
-//     .catch(err => {
-//       res.status(500).send({message: 'Internal Server Error'});
-//     });  // error handler
-//   });
+    const missingFields = requiredFields.filter(field => !(field in req.body));
+
+    console.log('is there a missingFields', missingFields);
+    Transaction.findById(transId)
+        .then(transaction => {
+            if(transaction) {
+                const transAmount = parseInt(transaction.transactionAmount);
+                User.findById(id)
+                    .then(account => {
+                        console.log('what is transaction', account);
+                        let newBalance = parseInt(account.accountBalance) + transAmount;
+                        User.findByIdAndUpdate(id, {accountBalance: newBalance})
+                            .then(() => res.status(204).end())
+                            .catch(err => console.error(`Error: ${err.message}`));
+                    })
+            }
+            else {
+                res.status(404).end(); // 404 handler
+            }
+        })
+    .catch(err => {
+        res.status(500).send({message: 'Internal Server Error'}); // error handler
+    });
+});
 
 function runServer(port = PORT) {
     const server = app.listen(port, () => {

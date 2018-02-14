@@ -4,14 +4,15 @@ const mongoose = require('mongoose');
 
 //this is our schema to represent an item
 const transactionSchema = new mongoose.Schema({
-  userId: {type: String, default: null, required: true},
-  transactionAmount: {type: Number, default: 0},
-  transactionType: {type: String, enum:['claim', 'send'], default: 'send'}
+  userIdInitiator: {type: String, default: null, required: true},
+  userIdClaimer: {type: String, default: null},
+  transactionAmount: {type: Number, default: 0, required: true},
+  isIOUClaimed: {type: Boolean, default: false}
 });
 
 
 const userSchema = new mongoose.Schema({
-  accountBalance: {type: Number, default: 0},
+  accountBalance: {type: Number, default: 1000},
 });
 
 // this is an *instance method* which will be available on all instances
@@ -22,7 +23,13 @@ transactionSchema.methods.serialize = function() {
   return {
     id: this._id,
     transactionAmount: this.transactionAmount,
-    transactionType: this.transactionType
+  };
+};
+
+userSchema.methods.serialize = function() {
+  return {
+    id: this._id,
+    accountBalance: this.accountBalance
   };
 };
 

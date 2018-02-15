@@ -56,6 +56,34 @@ app.get('/transactions', (req, res) => {
         }); //error handler
 });
 
+//get one users balance
+app.get('/user/balance/:id', (req, res) => {
+    const userId = req.params.id;
+    User.findById(userId)
+       .then(user => {
+        res.json(user);
+       })
+       .catch(err =>{
+         console.error(err);
+         res.status(500).json({message: 'Internal Server Error'});
+       }); //error handler
+});
+
+//see all transactions info for user
+app.get('/activity/transactions/:id', (req, res) => {
+    const userId = req.params.id;
+    console.log('what is userid', userId);
+    Transaction.find({ $or: [{userIdInitiator: userId}, {userIdClaimer: userId}]})
+        .then(transactionInitiate => {
+          res.json(transactionInitiate);
+        })
+        .catch(err =>{
+          console.error(err);
+          res.status(500).json({message: 'Internal Server Error'});
+        }); //error handler
+});
+   
+
 //new user provides id and starting accountblance of 0
 app.post('/user/new', (req, res) => {
     /***** Never trust users - validate input *****/

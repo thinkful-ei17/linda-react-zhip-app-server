@@ -102,18 +102,27 @@ app.post('/user/new', (req, res) => {
 //sending user inputs userIdInitiator and transactionAmount => capture via req.body
 //{"transactionAmount":10,"userIdInitiator":"5a844483734d1d1523dba1d6"}
 app.post('/transaction/send', jsonParser, (req, res) => {
+
+    console.log('what is req', req.body);
     /***** Never trust users - validate input *****/
     const requiredFields = ['transactionAmount', 'userIdInitiator'];
     
     const missingFields = requiredFields.filter(field => !(field in req.body)); 
- 
   
     const { transactionAmount, userIdInitiator  } = req.body;
-    
-    const newTransaction = {userIdInitiator, transactionAmount };
+
+    const intAmount = parseInt(transactionAmount, 10);
+
+
+    console.log('what is intAmount', intAmount);
+    // console.log('what is userIdInitiator', userIdInitiator);
+    const newTransaction = {userIdInitiator, transactionAmount: intAmount};
+
+    console.log('what is newTransaction', newTransaction)
+
     User.findById(userIdInitiator)
         .then(account => {
-            if((account.accountBalance > 0) && (account.accountBalance >= transactionAmount)) { //checks that user has enough in account balance to perform transaction
+            if((parseInt(account.accountBalance, 10) > 0) && (parseInt(account.accountBalance, 10) >= intAmount)) { //checks that user has enough in account balance to perform transaction
                 Transaction.create(newTransaction)
                     .then(sendAmount => {
                         if (sendAmount) {
@@ -148,8 +157,8 @@ app.post('/transaction/send', jsonParser, (req, res) => {
    User.findById(id)
     .then(account => {
         console.log('what is account', account);
-        if (parseInt(account.accountBalance) >= parseInt(amount)) { 
-        let newBalance = parseInt(account.accountBalance) - parseInt(amount);
+        if (parseInt(account.accountBalance, 10) >= parseInt(amount, 10)) { 
+        let newBalance = parseInt(account.accountBalance, 10) - parseInt(amount, 10);
           User.findByIdAndUpdate(id, {accountBalance: newBalance})
           .then(() => res.status(204).end())
           .catch(err => console.error(`Error: ${err.message}`));
@@ -165,7 +174,6 @@ app.post('/transaction/send', jsonParser, (req, res) => {
 
 //localhost:8080/receive/transaction/5a84a88d03eb191658d565cf
 //{"userIdClaimer": "5a844476734d1d1523dba1c5"}
-//issue with initial response sent is same old; however database collection doc is updated
 app.put('/transaction/receive/:transactionId', jsonParser ,(req, res) => {
     const transId = req.params.transactionId;
     const id = req.body.userIdClaimer;
@@ -217,11 +225,11 @@ app.put('/account/receive/:transactionId', (req, res) => {
     Transaction.findById(transId)
         .then(transaction => {
             if(transaction) {
-                const transAmount = parseInt(transaction.transactionAmount);
+                const transAmount = parseInt(transaction.transactionAmount, 10);
                 User.findById(id)
                     .then(account => {
                         console.log('what is transaction', account);
-                        let newBalance = parseInt(account.accountBalance) + transAmount;
+                        let newBalance = parseInt(account.accountBalance, 10) + transAmount;
                         User.findByIdAndUpdate(id, {accountBalance: newBalance})
                             .then(() => res.status(204).end())
                             .catch(err => console.error(`Error: ${err.message}`));

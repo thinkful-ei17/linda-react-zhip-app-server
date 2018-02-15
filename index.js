@@ -31,7 +31,6 @@ app.use(
 
 
 app.get('/users', (req, res) => {
-    console.log('what is user',User);
     User.find({})
        .then(user => {
         res.json(user);
@@ -44,10 +43,8 @@ app.get('/users', (req, res) => {
    
 //see all transactions info (ledger) - public key, transaction amt, transaction id, transaction type
 app.get('/transactions', (req, res) => {
-    console.log('what is user',Transaction);
     Transaction.find({})
         .then(transaction => {
-            console.log('what is transaction', transaction);
           res.json(transaction);
         })
         .catch(err =>{
@@ -72,7 +69,6 @@ app.get('/user/balance/:id', (req, res) => {
 //see all transactions info for user
 app.get('/activity/transactions/:id', (req, res) => {
     const userId = req.params.id;
-    console.log('what is userid', userId);
     Transaction.find({ $or: [{userIdInitiator: userId}, {userIdClaimer: userId}]})
         .then(transactionInitiate => {
           res.json(transactionInitiate);
@@ -103,7 +99,6 @@ app.post('/user/new', (req, res) => {
 //{"transactionAmount":10,"userIdInitiator":"5a844483734d1d1523dba1d6"}
 app.post('/transaction/send', jsonParser, (req, res) => {
 
-    console.log('what is req', req.body);
     /***** Never trust users - validate input *****/
     const requiredFields = ['transactionAmount', 'userIdInitiator'];
     
@@ -113,12 +108,7 @@ app.post('/transaction/send', jsonParser, (req, res) => {
 
     const intAmount = parseInt(transactionAmount, 10);
 
-
-    console.log('what is intAmount', intAmount);
-    // console.log('what is userIdInitiator', userIdInitiator);
     const newTransaction = {userIdInitiator, transactionAmount: intAmount};
-
-    console.log('what is newTransaction', newTransaction)
 
     User.findById(userIdInitiator)
         .then(account => {
@@ -144,19 +134,13 @@ app.post('/transaction/send', jsonParser, (req, res) => {
     const id = req.body.userIdInitiator;
     const amount = req.body.transactionAmount;
 
-    console.log('what is id', id);
-    console.log('what is amount', amount);
-
      /***** Never trust users - validate input *****/
     const requiredFields = ['userIdInitiator', 'transactionAmount'];
   
     const missingFields = requiredFields.filter(field => !(field in req.body));
-
-    console.log('is there a missingFields', missingFields);
   
    User.findById(id)
     .then(account => {
-        console.log('what is account', account);
         if (parseInt(account.accountBalance, 10) >= parseInt(amount, 10)) { 
         let newBalance = parseInt(account.accountBalance, 10) - parseInt(amount, 10);
           User.findByIdAndUpdate(id, {accountBalance: newBalance})
@@ -174,9 +158,13 @@ app.post('/transaction/send', jsonParser, (req, res) => {
 
 //localhost:8080/receive/transaction/5a84a88d03eb191658d565cf
 //{"userIdClaimer": "5a844476734d1d1523dba1c5"}
-app.put('/transaction/receive/:transactionId', jsonParser ,(req, res) => {
+app.put('/transaction/receive/:transactionId', jsonParser , (req, res) => {
+    console.log('hello I am working hard!!!!');
     const transId = req.params.transactionId;
     const id = req.body.userIdClaimer;
+
+    console.log('what is transId', transId);
+    console.log('what is userIdClaimer', id);
 
     const requiredFields = ['userIdClaimer'];
   
@@ -221,14 +209,12 @@ app.put('/account/receive/:transactionId', (req, res) => {
   
     const missingFields = requiredFields.filter(field => !(field in req.body));
 
-    console.log('is there a missingFields', missingFields);
     Transaction.findById(transId)
         .then(transaction => {
             if(transaction) {
                 const transAmount = parseInt(transaction.transactionAmount, 10);
                 User.findById(id)
                     .then(account => {
-                        console.log('what is transaction', account);
                         let newBalance = parseInt(account.accountBalance, 10) + transAmount;
                         User.findByIdAndUpdate(id, {accountBalance: newBalance})
                             .then(() => res.status(204).end())

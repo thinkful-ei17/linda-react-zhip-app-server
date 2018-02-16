@@ -148,7 +148,7 @@ app.put('/account/send', jsonParser, (req, res) => {
         .then(account => {
             if (parseInt(account.accountBalance, 10) >= parseInt(amount, 10)) { 
             let newBalance = parseInt(account.accountBalance, 10) - parseInt(amount, 10);
-                User.findByIdAndUpdate(id, {accountBalance: newBalance})
+                User.findByIdAndUpdate(id, {accountBalance: newBalance}, {new: true})
                     .then( update => { 
                         if (update) {
                         res.json(update); 
@@ -219,7 +219,7 @@ app.put('/account/receive/:transactionId', (req, res) => {
                 User.findById(id)
                     .then(account => {
                         let newBalance = parseInt(account.accountBalance, 10) + transAmount;
-                        User.findByIdAndUpdate(id, {accountBalance: newBalance})
+                        User.findByIdAndUpdate(id, {accountBalance: newBalance}, {new: true})
                             .then( update => { 
                                 if (update) {
                                 res.json(update); 

@@ -53,12 +53,8 @@ app.get('/transactions', (req, res) => {
 
 //works on server-side; need to add on client for extension of MVP
 //get one users balance
-app.get('/user/balance', jsonParser, (req, res) => {
-    const userId = req.body.userId;
-
-    const requiredFields = ['userId'];
-  
-    const missingFields = requiredFields.filter(field => !(field in req.body));
+app.get('/user/balance/:id', (req, res) => {
+    const userId =  req.params.id;
 
     User.findById(userId)
        .then(user => {
@@ -72,13 +68,9 @@ app.get('/user/balance', jsonParser, (req, res) => {
 
 //works on server-side; need to add on client for extension of MVP
 //see all transactions info for user
-app.get('/activity/transactions', jsonParser, (req, res) => {
-    const userId = req.body.userId;
-
-    const requiredFields = ['userId'];
-  
-    const missingFields = requiredFields.filter(field => !(field in req.body));
-
+app.get('/activity/:id', (req, res) => {
+    const userId = req.params.id;
+    
     Transaction.find({ $or: [{userIdInitiator: userId}, {userIdClaimer: userId}]})
         .then(transactionInitiate => {
             if (transactionInitiate) {

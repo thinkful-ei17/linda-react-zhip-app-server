@@ -84,7 +84,7 @@ app.get('/activity/transactions/:id', (req, res) => {
         }); //error handler
 });
    
-//works on server-side; need to add on client for extension of MVP
+//works on server and client side;
 //new user provides id and starting accountbalance of 1000 for demo purposes
 app.post('/user/new', (req, res) => {
 

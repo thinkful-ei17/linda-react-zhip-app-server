@@ -100,7 +100,7 @@ app.post('/user/new', (req, res) => {
 //works on server and client
 //sending user inputs userIdInitiator and transactionAmount => capture via req.body
 app.post('/transaction/send', jsonParser, (req, res) => {
-
+    console.log('POST transaction/send is working');
     /***** Never trust users - validate input *****/
     const requiredFields = ['transactionAmount', 'userIdInitiator'];
     
@@ -119,6 +119,7 @@ app.post('/transaction/send', jsonParser, (req, res) => {
                     .then(sendAmount => {
                         if (sendAmount) {
                         res.json(sendAmount);
+                        console.log('POST transaction/send was performed!!!! response is json', sendAmount);
                         }
                     })
                 }   
@@ -134,6 +135,7 @@ app.post('/transaction/send', jsonParser, (req, res) => {
 //works on server and client
 //updates sending users account to reflect deduction based on IOU amount
 app.put('/account/send', jsonParser, (req, res) => {
+    console.log('PUT account/send is working');
     const id = req.body.userIdInitiator;
     const amount = req.body.transactionAmount;
 
@@ -147,9 +149,16 @@ app.put('/account/send', jsonParser, (req, res) => {
             if (parseInt(account.accountBalance, 10) >= parseInt(amount, 10)) { 
             let newBalance = parseInt(account.accountBalance, 10) - parseInt(amount, 10);
                 User.findByIdAndUpdate(id, {accountBalance: newBalance})
-                    .then(() => res.status(204).end())
-                    .catch(err => console.error(`Error: ${err.message}`));
-            }
+                    .then( update => { 
+                        if (update) {
+                        res.json(update); 
+                        console.log('PUT account/send was performed! response is json', update);
+                        }
+                        else {
+                            res.status(404).end(); // 404 handler
+                        }
+                    })
+                }
             else {
                 res.status(404).end(); // 404 handler
             }
@@ -162,6 +171,7 @@ app.put('/account/send', jsonParser, (req, res) => {
 //works on server and client
 //updates transaction to reflect claim to IOU by claiming user
 app.put('/transaction/receive/:transactionId', jsonParser , (req, res) => {
+    console.log('PUT transaction/receive/transactionId is working');
     const transId = req.params.transactionId;
     const id = req.body.userIdClaimer;
 
@@ -175,6 +185,7 @@ app.put('/transaction/receive/:transactionId', jsonParser , (req, res) => {
                     .then(completedTransaction => {
                     if (completedTransaction) {
                         res.json(completedTransaction);
+                        console.log('PUT transaction/receive/transactionId was performed! response is json', completedTransaction);
                     }
                     })
                 }
@@ -191,6 +202,7 @@ app.put('/transaction/receive/:transactionId', jsonParser , (req, res) => {
 //works on server and client
 //updates claiming user account to based on addition of IOU credit
 app.put('/account/receive/:transactionId', (req, res) => {
+    console.log('PUT account/receive/transactionId is working');
     const id = req.body.userIdClaimer;
     //have to find const amount = req.body.transactionAmount;
     const transId = req.params.transactionId;
@@ -208,8 +220,15 @@ app.put('/account/receive/:transactionId', (req, res) => {
                     .then(account => {
                         let newBalance = parseInt(account.accountBalance, 10) + transAmount;
                         User.findByIdAndUpdate(id, {accountBalance: newBalance})
-                            .then(() => res.status(204).end())
-                            .catch(err => console.error(`Error: ${err.message}`));
+                            .then( update => { 
+                                if (update) {
+                                res.json(update); 
+                                console.log('PUT account/receive/transactionId was performed! response is json', update);
+                                }
+                                else {
+                                    res.status(404).end(); // 404 handler
+                                }
+                            })       
                     })
             }
             else {

@@ -70,11 +70,11 @@ app.get('/user/balance/:id', (req, res) => {
 //see all transactions info for user
 app.get('/activity/:id', (req, res) => {
     const userId = req.params.id;
-    
+
     Transaction.find({ $or: [{userIdInitiator: userId}, {userIdClaimer: userId}]})
-        .then(transactionInitiate => {
-            if (transactionInitiate) {
-                res.json(transactionInitiate);
+        .then(transactions => {
+            if (transactions) {
+                res.json(transactions);
             }
             else {
                 res.status(404).end(); //404 handler

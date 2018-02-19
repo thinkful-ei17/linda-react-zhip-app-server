@@ -25,7 +25,6 @@ app.use(
     })
 );
 
-//works
 //see all users for testing - server side only - run through postman or localhost: 8080
 app.get('/users', (req, res) => {
     User.find({})
@@ -38,7 +37,6 @@ app.get('/users', (req, res) => {
        }); //error handler
 });
  
-//works
 //see all transactions for testing - server side only - run through postman or localhost: 8080
 app.get('/transactions', (req, res) => {
     Transaction.find({})
@@ -51,7 +49,6 @@ app.get('/transactions', (req, res) => {
         }); //error handler
 });
 
-//works on server-side; need to add on client for extension of MVP
 //get one users balance
 app.get('/user/balance/:id', (req, res) => {
     const userId =  req.params.id;
@@ -66,7 +63,6 @@ app.get('/user/balance/:id', (req, res) => {
        }); //error handler
 });
 
-//works on server-side; need to add on client for extension of MVP
 //see all transactions info for user
 app.get('/activity/:id', (req, res) => {
     const userId = req.params.id;
@@ -86,10 +82,8 @@ app.get('/activity/:id', (req, res) => {
         }); //error handler
 });
    
-//works on server and client side;
 //new user provides id and starting accountbalance of 1000 for demo purposes
 app.post('/user/new', (req, res) => {
-
     User.create({accountBalance: 1000})
         .then(user => {
             if (user) {
@@ -99,10 +93,8 @@ app.post('/user/new', (req, res) => {
         .catch(err => console.error(`Error: ${err.message}`)); // error handler
 });
 
-//works on server and client
 //sending user inputs userIdInitiator and transactionAmount => capture via req.body
 app.post('/transaction/send', jsonParser, (req, res) => {
-    console.log('POST transaction/send is working');
     /***** Never trust users - validate input *****/
     const requiredFields = ['transactionAmount', 'userIdInitiator'];
     
@@ -121,7 +113,6 @@ app.post('/transaction/send', jsonParser, (req, res) => {
                     .then(sendAmount => {
                         if (sendAmount) {
                         res.json(sendAmount);
-                        console.log('POST transaction/send was performed!!!! response is json', sendAmount);
                         }
                     })
                 }   
@@ -134,10 +125,8 @@ app.post('/transaction/send', jsonParser, (req, res) => {
     }); // error handler
 });
 
-//works on server and client
 //updates sending users account to reflect deduction based on IOU amount
 app.put('/account/send', jsonParser, (req, res) => {
-    console.log('PUT account/send is working');
     const id = req.body.userIdInitiator;
     const amount = req.body.transactionAmount;
 
@@ -154,7 +143,6 @@ app.put('/account/send', jsonParser, (req, res) => {
                     .then( update => { 
                         if (update) {
                         res.json(update); 
-                        console.log('PUT account/send was performed! response is json', update);
                         }
                         else {
                             res.status(404).end(); // 404 handler
@@ -170,10 +158,8 @@ app.put('/account/send', jsonParser, (req, res) => {
     });  // error handler
 });
 
-//works on server and client
 //updates transaction to reflect claim to IOU by claiming user
 app.put('/transaction/receive/:transactionId', jsonParser , (req, res) => {
-    console.log('PUT transaction/receive/transactionId is working');
     const transId = req.params.transactionId;
     const id = req.body.userIdClaimer;
 
@@ -187,7 +173,6 @@ app.put('/transaction/receive/:transactionId', jsonParser , (req, res) => {
                     .then(completedTransaction => {
                     if (completedTransaction) {
                         res.json(completedTransaction);
-                        console.log('PUT transaction/receive/transactionId was performed! response is json', completedTransaction);
                     }
                     })
                 }
@@ -200,11 +185,8 @@ app.put('/transaction/receive/:transactionId', jsonParser , (req, res) => {
         });
 }); 
 
-
-//works on server and client
-//updates claiming user account to based on addition of IOU credit
+//updates claiming user account based on addition of IOU credit
 app.put('/account/receive/:transactionId', (req, res) => {
-    console.log('PUT account/receive/transactionId is working');
     const id = req.body.userIdClaimer;
     //have to find const amount = req.body.transactionAmount;
     const transId = req.params.transactionId;
@@ -225,7 +207,6 @@ app.put('/account/receive/:transactionId', (req, res) => {
                             .then( update => { 
                                 if (update) {
                                 res.json(update); 
-                                console.log('PUT account/receive/transactionId was performed! response is json', update);
                                 }
                                 else {
                                     res.status(404).end(); // 404 handler

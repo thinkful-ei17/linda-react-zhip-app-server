@@ -10,6 +10,7 @@ const transactionSchema = new mongoose.Schema({
   isIOUClaimed: {type: Boolean, default: false}
 });
 
+//userSchema
 
 const userSchema = new mongoose.Schema({
   accountBalance: {type: Number, default: 1000},
